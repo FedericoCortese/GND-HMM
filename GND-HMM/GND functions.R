@@ -28,21 +28,21 @@ dGND=function(theta,eta,y1,y2,logd=T){
   return(f)
 }
 
-compute_theta=function(rho,theta4=0,theta5=0,theta6=0){
-  
-  # compute_theta computes theta1, theta2, and theta3 starting from the linear correlation coefficient rho
-  # It returns a vector of parameters of dimension 6
-  
-  theta=rep(0,6)
-  theta[1]=1/(1-rho^2)
-  theta[2]=theta[1]
-  theta[3]=rho/(1-rho^2)
-  theta[4]=theta4
-  theta[5]=theta5
-  theta[6]=theta6
-  
-  return(theta)
-}
+# compute_theta=function(rho,theta4=0,theta5=0,theta6=0){
+#   
+#   # compute_theta computes theta1, theta2, and theta3 starting from the linear correlation coefficient rho
+#   # It returns a vector of parameters of dimension 6
+#   
+#   theta=rep(0,6)
+#   theta[1]=1/(1-rho^2)
+#   theta[2]=theta[1]
+#   theta[3]=rho/(1-rho^2)
+#   theta[4]=theta4
+#   theta[5]=theta5
+#   theta[6]=theta6
+#   
+#   return(theta)
+# }
 
 cond_mom=function(y1,y2,theta){
   
@@ -73,9 +73,7 @@ cond_mom=function(y1,y2,theta){
   }
 }
 
-gfun_GND=function(y,theta
-                  #,sig2AB
-){
+gfun_GND=function(y,theta){
   # This function returns f(y)*exp(eta)
   # y is the vector of observations 
   # theta is the vector of parameters with 4 components, the first is the correlation coefficient, the second, third, and fourth are the parameters corresponding to theta4, theta5, and theta6 of the GND
@@ -115,9 +113,8 @@ get_eta=function(
   # sig2AB=sig2AB$sig2AB
   
   # Set integral boundaries to -5 and 5 for convergence 
-  int=integrate(f=gfun_GND,lower = -5,upper = 5,theta=theta
-                #,sig2AB=sig2AB
-  )
+  int=integrate(f=gfun_GND,lower = -5,upper = 5,theta=theta)
+  
   eta=log(int$value)
   return(eta)
 }

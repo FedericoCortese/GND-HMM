@@ -1,9 +1,9 @@
 source("GND functions.R")
 
-thetaA=c(.5,1,1,2)
+thetaA=c(.1,1,1,2)
 
-N=1000
-Y=GND_sim(thetaA,N,seed=2)
+N=5000
+Y=GND_sim(thetaA,N,seed=12)
 plot(Y)
 
 fun = function(theta,Y) {
@@ -46,6 +46,10 @@ ineq2=function(theta,Y){
 }
 
 
-theta_new=Rsolnp::solnp(c(.5,1,1,2),fun,
+theta_new=Rsolnp::solnp(c(.5,0,0,2),fun,
                         ineqfun = ineq2,ineqUB = c(0,Inf,0,Inf),ineqLB = c(-Inf,0,-Inf,0),
-                        LB=c(-.98,-2,-2,0),UB=c(.98,2,2,5),Y=Y)$par
+                        LB=c(-.98,-2,-2,0),UB=c(.98,2,2,Inf),Y=Y)
+theta_new$convergence
+# 0 means convergence
+theta_new$par
+thetaA
