@@ -1,4 +1,3 @@
-
 # GND functions ---------------------------------------------------------------------
 
 dGND=function(theta,eta,y1,y2,logd=T){
@@ -14,12 +13,13 @@ dGND=function(theta,eta,y1,y2,logd=T){
   theta2=theta1
   theta3=rho/(1-rho^2)
   theta4=theta[2]
-  theta5=theta[3]
-  theta6=theta[4]
+  #theta5=theta[3]
+  theta6=theta[3]
   
   f=exp((-1/2)*theta1*y1^2-(1/2)*theta2*y2^2+theta3
-        *y1*y2+theta4*y1*y2^2+theta5
-        *y1^2*y2-theta6*y1^2*y2^2-eta)
+        *y1*y2+theta4*y1*y2^2
+        #+theta5*y1^2*y2
+        -theta6*y1^2*y2^2-eta)
   
   if(logd){
     f=log(f)
@@ -56,14 +56,18 @@ cond_mom=function(y1,y2,theta){
   theta2=theta1
   theta3=rho/(1-rho^2)
   theta4=theta[2]
-  theta5=theta[3]
-  theta6=theta[4]
+  #theta5=theta[3]
+  theta6=theta[3]
   
-  check_cond1=theta5^2-2*theta6*theta1<0
+  #check_cond1=theta5^2-2*theta6*theta1<0
   check_cond2=theta4^2-2*theta6*theta2<0
   
-  if(check_cond1&check_cond2){
-    sig2AB=1/(theta1+2*theta6*y2^2-2*theta5*y)
+  if(
+    #check_cond1&
+     check_cond2){
+    sig2AB=1/(theta1+2*theta6*y2^2
+              #-2*theta5*y
+              )
     muAB=(theta[3]*y2+theta4*y2^2)*sig2AB
     return(list(sig2AB=sig2AB,
                 muAB=muAB))
@@ -83,15 +87,19 @@ gfun_GND=function(y,theta){
   theta2=theta1
   theta3=rho/(1-rho^2)
   theta4=theta[2]
-  theta5=theta[3]
-  theta6=theta[4]
+  #theta5=theta[3]
+  theta6=theta[3]
   
-  check_cond1=theta5^2-2*theta6*theta1<0
+  #check_cond1=theta5^2-2*theta6*theta1<0
   check_cond2=theta4^2-2*theta6*theta2<0
   
   
-  if(check_cond1&check_cond2){
-    sig2AB=1/(theta1+2*theta6*y^2-2*theta5*y)
+  if(
+    #check_cond1&
+     check_cond2){
+    sig2AB=1/(theta1+2*theta6*y^2
+             # -2*theta5*y
+              )
     g=(2*pi)/sqrt(theta2)*exp((1/2)*(theta3*y+theta4*y^2)^2*sig2AB)*
       sqrt(sig2AB*dnorm(y,sd=1/theta2))
   }
@@ -138,8 +146,8 @@ GND_sim<-function(theta,T,seed=1234,ngrid=10000){
   # theta3=theta[3]
   # 
   theta4=theta[2]
-  theta5=theta[3]
-  theta6=theta[4]
+  #theta5=theta[3]
+  theta6=theta[3]
   rho=theta[1]
   theta1<-theta2<-1/(1-rho^2)
   theta3<-rho*theta1
@@ -149,7 +157,8 @@ GND_sim<-function(theta,T,seed=1234,ngrid=10000){
   #Griddy-Gibbs for Y2:
   #ngrid=10000 
   grid=seq(from=-8,to=8,length.out=ngrid)
-  coef1=theta1+2*theta6*grid^2-2*theta5*grid
+  coef1=theta1+2*theta6*grid^2
+  #-2*theta5*grid
   sigma2_12=1/coef1
   ee1=exp(.5*(theta3*grid+theta4*grid^2)^2*sigma2_12 )
   pp=dnorm(grid,mean=0,sd=stheta1)*ee1*sqrt(sigma2_12)
@@ -157,7 +166,8 @@ GND_sim<-function(theta,T,seed=1234,ngrid=10000){
   i = sample(ngrid, T, replace = TRUE, prob = pp)
   dx = diff(grid[1:2])
   Y2 = grid[i] + runif(T) * dx - dx/2
-  coef1=theta1+2*theta6*Y2^2-2*theta5*Y2
+  coef1=theta1+2*theta6*Y2^2
+  #-2*theta5*Y2
   sigma2_12=1/coef1
   mu_12=sigma2_12*(theta3*Y2+theta4*Y2^2)
   Y1=rnorm(T,mean=mu_12,sd=sqrt(sigma2_12))
@@ -165,123 +175,81 @@ GND_sim<-function(theta,T,seed=1234,ngrid=10000){
 }
 
 
+# run ---------------------------------------------------------------------
 
-GNDHMM_sim=function(n,THETA, Q, init,seed){
-  # This function simulates a GND-HMM model
-  # n is the number of observations
-  # THETA is a matrix of dimension 4 x k where k is the number of regimes, so that each column is the state specific vector of parameters 
-  # Q is the transition matrix
-  # init is the initial distribution
-  # seed is the seed for the random number generator
+source("GND functions.R")
+
+thetaA=c(0.5,1,2)
+
+N=5000
+Y=GND_sim(thetaA,N,seed=1,ngrid = 10^6)
+plot(Y)
+
+fun = function(theta,Y) {
   
-  #markov chain simulation
-  reg = dim(Q)[1]
-  x <- numeric(n)
-  set.seed(seed)
-  x[1] <- sample(1:reg, 1, prob = init)
-  for(i in 2:n){
-    x[i] <- sample(1:reg, 1, prob = Q[x[i - 1], ])
-  }
+  theta[1]=(exp(theta[1])-1)/(exp(theta[1])+1)
+  theta[3]=exp(theta[3])
   
-  d=2
-  Sim = matrix(0, n, d * reg)
-  SimData = matrix(0, n, d)
+  #theta[3]=0
   
-  #pseudo-observations simulation
-  for (k in 1:reg) {
-    u=GND_sim(THETA[,k],n)
-    #u = rCopula(n, copula::tCopula(param=P2p(R[,,k]), dim = d,df=nu[k],dispstr = "un"))
-    Sim[, (d * k - d + 1):(d * k)] = u
-  }
+  y1=Y[,1]
+  y2=Y[,2]
+  #theta=compute_theta(theta[1],theta[2],theta[3],theta[4])  
+  eta=get_eta(theta)
+  log_likelihood = -sum(dGND(theta,eta,y1,y2,logd=T))
+  # for (i in 2:r) {
+  #   eta=get_eta(THETA[,i])
+  #   log_likelihood = log_likelihood + (-sum(dGND(THETA[,i],eta,y1,y2,logd=T)))
+  # }
   
-  for (i in 1:n) {
-    k = x[i]
-    SimData[i, ] = Sim[i, (d * k - d + 1):(d * k)]
-  }
-  return(list(SimData=SimData,states=x))
+  return(log_likelihood)
+}
+
+fun(thetaA,Y)
+
+ineq2=function(theta,Y){
   
+  #theta[1]=(exp(theta[1])-1)/(exp(theta[1])+1)
+  
+  #rho=theta[1]
+  rho=(exp(theta[1])-1)/(exp(theta[1])+1)
+  theta1=1/(1-rho^2)
+  theta2=theta1
+  theta3=rho/(1-rho^2)
+  # theta1=theta[1]
+  # theta2=theta[2]
+  # theta3=theta[3]
+  theta4=theta[2]
+  
+  #theta[3]=0
+  #theta5=theta[3]
+  #theta6=theta[4]
+  theta6=exp(theta[3])
+  
+  z11=#theta5
+  -sqrt(2*theta6*theta1)
+  z12=#theta5
+  +sqrt(2*theta6*theta1)
+  z21=theta4-sqrt(2*theta6*theta2)
+  z22=theta4+sqrt(2*theta6*theta2)
+  # z3=theta[1]
+  # z4=theta[2]
+  return(c(z11,z12,z21,z22))
 }
 
 
-# EM ---------------------------------------------------------------------
+# theta_new=Rsolnp::solnp(c(.5,0,0,5),fun,
+#                         ineqfun = ineq2,ineqUB = c(0,Inf,0,Inf),ineqLB = c(-Inf,0,-Inf,0),
+#                         LB=c(-.98,-2,-2,0),UB=c(.98,2,2,Inf),Y=Y)
 
-EstGNDHMM=function (y1,y2, THETA, Q){
-  n = dim(y)[1]
-  r = dim(Q)[2]
-  eta_bar = matrix(0, n, r)
-  eta = matrix(0, n, r)
-  lambda = matrix(0, n, r)
-  c = matrix(0, n, r)
-  Lambda = array(0, c(r, r, n))
-  M = matrix(0, r, r)
-  
-  for(j in 1:reg){
-    c[, j] = dGND(THETA[j,],et[j],y1,y2,logd=T)
-  }
-  
-  ###
-  eta_bar[n, ] = 1/r
-  for (k in 1:(n - 1)) {
-    i = n - k
-    j = i + 1
-    v = (eta_bar[j, ] * c[j, ]) %*% t(Q)
-    eta_bar[i, ] = v/sum(v)
-  }
-  eta0 = rep(1, r)/r
-  v = (eta0 %*% Q) * c[1, ]
-  eta[1, ] = v/sum(v)
-  for (i in 2:n) {
-    v = (eta[i - 1, ] %*% Q) * c[i, ]
-    eta[i, ] = v/sum(v)
-  }
-  v = eta * eta_bar
-  sv0 = rowSums(v)
-  for (j in 1:r) {
-    lambda[, j] = v[, j]/sv0
-  }
-  gc = eta_bar * c
-  M = Q * (as.matrix(eta0) %*% gc[1, ])
-  MM = sum(M)
-  Lambda[, , 1] = M/MM
-  for (i in 2:n) {
-    M = Q * (as.matrix(eta[i - 1, ]) %*% gc[i, ])
-    MM = sum(M)
-    Lambda[, , i] = M/MM
-  }
-  nu = colMeans(lambda)
-  Qnew = Q
-  if (r >= 2) {
-    for (j in 1:r) {
-      sv = rowSums(Lambda[j, , ], dims = 1)
-      ssv = sum(sv)
-      Qnew[j, ] = sv/ssv
-    }
-  }
-  
-  fun = function(thetaa) {
-    if (r < 2) {
-      log_likelihood = -sum(lambda[, 1] * dGND(theta[1,],et[1],y1,y2,logd=T)
-      )
-    } else if (r > 1) {
-      log_likelihood = -sum(lambda[, 1] * dGND(theta[1,],et[1],y1,y2,logd=T))
-      
-      for (i in 2:r) {
-        log_likelihood = log_likelihood + (-sum(lambda[, 
-                                                       i] * dGND(theta[i,],et[i],y1,y2,logd=T)
-        )
-        )
-      }
-      return(log_likelihood)
-    }
-  }
-  if (r >= 2) {
-    theta_new = stats::optim(par = theta, fun, method = "Nelder-Mead")$par
-  } else if (r == 1) {
-    theta_new = stats::optim(par = theta, fun, method = "L-BFGS-B")$par
-  }
-  
-  out = list(nu = nu, theta_new = theta_new, Qnew = Qnew, eta = eta, 
-             eta_bar = eta_bar, lambda = lambda, Lambda = Lambda)
-  return(out)
-}
+theta_new=Rsolnp::solnp(c(0,1,0),fun,
+                        ineqfun = ineq2,ineqUB = c(0,Inf,0,Inf),ineqLB = c(-Inf,0,-Inf,0),
+                        LB=c(-10,-3,-10),UB=c(10,3,10),Y=Y)
 
+theta_new$convergence
+# 0 means convergence
+theta_newpars=theta_new$par
+theta_newpars[1]=(exp(theta_newpars[1])-1)/(exp(theta_newpars[1])+1)
+theta_newpars[3]=exp(theta_newpars[3])
+theta_newpars
+thetaA
