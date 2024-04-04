@@ -13,9 +13,6 @@ dGND=function(theta,eta,y1,y2,logd=T){
   theta1=1/(1-rho^2)
   theta2=theta1
   theta3=rho/(1-rho^2)
-  # theta1=theta[1]
-  # theta2=theta[2]
-  # theta3=theta[3]
   theta4=theta[2]
   theta5=theta[3]
   theta6=theta[4]
@@ -52,14 +49,22 @@ cond_mom=function(y1,y2,theta){
   # cond_mom computes conditional first and second order moments
   # y1 is the vector of observations
   # y2 is the vector of observations for the conditioning variable
-  # theta is the vector of the GND parameters
+  # theta is the 4-dim vector of the GND parameters
   
-  check_cond1=theta[5]^2-2*theta[6]*theta[1]<0
-  check_cond2=theta[4]^2-2*theta[6]*theta[2]<0
+  rho=theta[1]
+  theta1=1/(1-rho^2)
+  theta2=theta1
+  theta3=rho/(1-rho^2)
+  theta4=theta[2]
+  theta5=theta[3]
+  theta6=theta[4]
+  
+  check_cond1=theta5^2-2*theta6*theta1<0
+  check_cond2=theta4^2-2*theta6*theta2<0
   
   if(check_cond1&check_cond2){
-    sig2AB=1/(theta[1]+2*theta[6]*y2^2-2*theta[5]*y)
-    muAB=(theta[3]*y2+theta[4]*y2^2)*sig2AB
+    sig2AB=1/(theta1+2*theta6*y2^2-2*theta5*y)
+    muAB=(theta[3]*y2+theta4*y2^2)*sig2AB
     return(list(sig2AB=sig2AB,
                 muAB=muAB))
   }
@@ -73,7 +78,7 @@ gfun_GND=function(y,theta
 ){
   # This function returns f(y)*exp(eta)
   # y is the vector of observations 
-  # theta is the vector of parameters with 6 components, the first is the correlation coefficient, the second, third, and fourth are the parameters corresponding to theta4, theta5, and theta6 of the GND
+  # theta is the vector of parameters with 4 components, the first is the correlation coefficient, the second, third, and fourth are the parameters corresponding to theta4, theta5, and theta6 of the GND
   
   rho=theta[1]
   theta1=1/(1-rho^2)
@@ -112,7 +117,7 @@ get_eta=function(
   # Set integral boundaries to -5 and 5 for convergence 
   int=integrate(f=gfun_GND,lower = -5,upper = 5,theta=theta
                 #,sig2AB=sig2AB
-                )
+  )
   eta=log(int$value)
   return(eta)
 }
@@ -120,14 +125,16 @@ get_eta=function(
 
 # Simulations ---------------------------------------------------------------------
 
-GND_sim<-function(theta,T){
+GND_sim<-function(theta,T,seed=1234){
   
   #MC Simulations for the GND model
   #theta is the vector of parameters with the following components:
   #theta[1] is the correlation coefficient
   #theta[2:4] are theta_4, theta_5, and theta_6
   #T is the number of observations
+  #seed is the seed for the random number generator
   
+  set.seed(seed)
   # theta1=theta[1]
   # theta2=theta[2]
   # theta3=theta[3]

@@ -43,25 +43,54 @@ fun = function(thetaa) {
 
 fun(thetaA)
 
-ineq=function(theta){
+# OLD
+# ineq=function(theta){
+#   
+#   z1=theta[5]^2-2*theta[6]*theta[1]
+#   z2=theta[4]^2-2*theta[6]*theta[2]
+#   # z3=theta[1]
+#   # z4=theta[2]
+#   return(c(z1,z2))
+# }
+# 
+# thetaA=c(.5,1.5,1.5,2)
+# y=GND_sim(thetaA,1000)
+# 
+# 
+# fun(thetaA)
+# #thetaa = theta_new = stats::optim(par = thetaA, fun, method = "L-BFGS-B")$par
+# theta_new=Rsolnp::solnp(c(.5,1,1,2),fun,
+#                         #ineqfun = ineq,ineqUB = c(0,0),ineqLB = c(-Inf,-Inf),
+#                         LB=c(-.98,-2,-2,0),UB=c(.98,2,2,5))$par
+
+#### Arturo #########
+ineq2=function(theta){
   
-  z1=theta[5]^2-2*theta[6]*theta[1]
-  z2=theta[4]^2-2*theta[6]*theta[2]
+  rho=theta[1]
+  theta1=1/(1-rho^2)
+  theta2=theta1
+  theta3=rho/(1-rho^2)
+  # theta1=theta[1]
+  # theta2=theta[2]
+  # theta3=theta[3]
+  theta4=theta[2]
+  theta5=theta[3]
+  theta6=theta[4]
+  
+  z11=theta5-sqrt(2*theta6*theta1)
+  z12=theta5+sqrt(2*theta6*theta1)
+  z21=theta4-sqrt(2*theta6*theta2)
+  z22=theta4+sqrt(2*theta6*theta2)
   # z3=theta[1]
   # z4=theta[2]
-  return(c(z1,z2))
+  return(c(z11,z12,z21,z22))
 }
 
-thetaA=c(.5,1.5,1.5,2)
-y=GND_sim(thetaA,1000)
 
-
-fun(thetaA)
-#thetaa = theta_new = stats::optim(par = thetaA, fun, method = "L-BFGS-B")$par
 theta_new=Rsolnp::solnp(c(.5,1,1,2),fun,
-                        #ineqfun = ineq,ineqUB = c(0,0),ineqLB = c(-Inf,-Inf),
+                        ineqfun = ineq2,ineqUB = c(0,Inf,0,Inf),ineqLB = c(-Inf,0,-Inf,0),
                         LB=c(-.98,-2,-2,0),UB=c(.98,2,2,5))$par
-
+###################
 
 # theta1, theta2, and theta3 constraints
 
