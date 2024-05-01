@@ -28,51 +28,6 @@ dGND=function(theta,eta,y1,y2,logd=T){
   return(f)
 }
 
-# compute_theta=function(rho,theta4=0,theta5=0,theta6=0){
-#   
-#   # compute_theta computes theta1, theta2, and theta3 starting from the linear correlation coefficient rho
-#   # It returns a vector of parameters of dimension 6
-#   
-#   theta=rep(0,6)
-#   theta[1]=1/(1-rho^2)
-#   theta[2]=theta[1]
-#   theta[3]=rho/(1-rho^2)
-#   theta[4]=theta4
-#   theta[5]=theta5
-#   theta[6]=theta6
-#   
-#   return(theta)
-# }
-
-cond_mom=function(y1,y2,theta){
-  
-  # cond_mom computes conditional first and second order moments
-  # y1 is the vector of observations
-  # y2 is the vector of observations for the conditioning variable
-  # theta is the 4-dim vector of the GND parameters
-  
-  rho=theta[1]
-  theta1=1/(1-rho^2)
-  theta2=theta1
-  theta3=rho/(1-rho^2)
-  theta4=theta[2]
-  theta5=theta[3]
-  theta6=theta[4]
-  
-  check_cond1=theta5^2-2*theta6*theta1<0
-  check_cond2=theta4^2-2*theta6*theta2<0
-  
-  if(check_cond1&check_cond2){
-    sig2AB=1/(theta1+2*theta6*y2^2-2*theta5*y)
-    muAB=(theta[3]*y2+theta4*y2^2)*sig2AB
-    return(list(sig2AB=sig2AB,
-                muAB=muAB))
-  }
-  else{
-    stop("Inequality conditions not satisfied")
-  }
-}
-
 gfun_GND=function(y,theta){
   # This function returns f(y)*exp(eta)
   # y is the vector of observations 
@@ -89,15 +44,17 @@ gfun_GND=function(y,theta){
   check_cond1=theta5^2-2*theta6*theta1<0
   check_cond2=theta4^2-2*theta6*theta2<0
   
+  # What to do in case Inequality conditions are not satisfied?
+  # No need to check conditions for the moment as we set constraints during optimization
   
-  if(check_cond1&check_cond2){
+  #if(check_cond1&check_cond2){
     sig2AB=1/(theta1+2*theta6*y^2-2*theta5*y)
     g=(2*pi)/sqrt(theta2)*exp((1/2)*(theta3*y+theta4*y^2)^2*sig2AB)*
-      sqrt(sig2AB*dnorm(y,sd=1/theta2))
-  }
-  else{
-    stop("Inequality conditions not satisfied")
-  }
+      sqrt(sig2AB)*dnorm(y,sd=1/theta2)
+  # }
+  # else{
+  #   stop("Inequality conditions not satisfied")
+  # }
   return(g)
 }
 
@@ -285,3 +242,36 @@ EstGNDHMM=function (y1,y2, THETA, Q){
   return(out)
 }
 
+
+# _old --------------------------------------------------------------------
+
+cond_mom=function(y1,y2,theta){
+  
+  # cond_mom computes conditional first and second order moments
+  # y1 is the vector of observations
+  # y2 is the vector of observations for the conditioning variable
+  # theta is the 4-dim vector of the GND parameters
+  
+  rho=theta[1]
+  theta1=1/(1-rho^2)
+  theta2=theta1
+  theta3=rho/(1-rho^2)
+  theta4=theta[2]
+  theta5=theta[3]
+  theta6=theta[4]
+  
+  check_cond1=theta5^2-2*theta6*theta1<0
+  check_cond2=theta4^2-2*theta6*theta2<0
+  
+  # What to do in case Inequality conditions are not satisfied?
+  
+  if(check_cond1&check_cond2){
+    sig2AB=1/(theta1+2*theta6*y2^2-2*theta5*y)
+    muAB=(theta[3]*y2+theta4*y2^2)*sig2AB
+    return(list(sig2AB=sig2AB,
+                muAB=muAB))
+  }
+  else{
+    stop("Inequality conditions not satisfied")
+  }
+}

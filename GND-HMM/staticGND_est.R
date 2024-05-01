@@ -1,6 +1,15 @@
 source("GND functions.R")
 
-thetaA=c(0.5,1,0,2)
+thetaA=c(-0.5,-.1,0.5,2)
+
+theta1=1/(1-thetaA[1]^2)
+theta2=theta1
+theta3=thetaA[1]/(1-thetaA[1]^2)
+theta4=thetaA[2]
+theta5=thetaA[3]
+theta6=thetaA[4]
+theta5^2-2*theta6*theta1<0
+theta4^2-2*theta6*theta2<0
 
 N=5000
 Y=GND_sim(thetaA,N,seed=1,ngrid = 10^6)
@@ -8,8 +17,8 @@ plot(Y)
 
 fun = function(theta,Y) {
   
-  theta[1]=(exp(theta[1])-1)/(exp(theta[1])+1)
-  theta[4]=exp(theta[4])
+  # theta[1]=(exp(theta[1])-1)/(exp(theta[1])+1)
+  # theta[4]=exp(theta[4])
   
   #theta[3]=0
   
@@ -26,26 +35,27 @@ fun = function(theta,Y) {
   return(log_likelihood)
 }
 
+# theta_inv=thetaA
+# theta_inv[1]=log((1+thetaA[1])/(1-thetaA[1]))
+# theta_inv[4]=log(thetaA[4])
+# theta_inv
+# thetaA
+# #fun(theta_inv,Y)
 fun(thetaA,Y)
 
 ineq2=function(theta,Y){
   
   #theta[1]=(exp(theta[1])-1)/(exp(theta[1])+1)
   
-  #rho=theta[1]
-  rho=(exp(theta[1])-1)/(exp(theta[1])+1)
+  rho=theta[1]
   theta1=1/(1-rho^2)
   theta2=theta1
   theta3=rho/(1-rho^2)
-  # theta1=theta[1]
-  # theta2=theta[2]
-  # theta3=theta[3]
   theta4=theta[2]
   
-  #theta[3]=0
   theta5=theta[3]
-  #theta6=theta[4]
-  theta6=exp(theta[4])
+  theta6=theta[4]
+  #theta6=exp(theta[4])
   
   z11=theta5-sqrt(2*theta6*theta1)
   z12=theta5+sqrt(2*theta6*theta1)
@@ -57,17 +67,27 @@ ineq2=function(theta,Y){
 }
 
 
-# theta_new=Rsolnp::solnp(c(.5,0,0,5),fun,
-#                         ineqfun = ineq2,ineqUB = c(0,Inf,0,Inf),ineqLB = c(-Inf,0,-Inf,0),
-#                         LB=c(-.98,-2,-2,0),UB=c(.98,2,2,Inf),Y=Y)
+theta_new=Rsolnp::solnp(c(-0.5,0,0,1),
+                        fun,
+                        ineqfun = ineq2,
+                        ineqUB = c(0,Inf,0,Inf),
+                        ineqLB = c(-Inf,0,-Inf,0),
+                        LB=c(-.98,-2.8,-2.8,.3),
+                        UB=c(.98,2.8,2.8,6),
+                        Y=Y,
+                        control=list(rho=1,tol=1e-16,trace=0))
 
-theta_new=Rsolnp::solnp(c(0,1,1,0),fun,
-                        ineqfun = ineq2,ineqUB = c(0,Inf,0,Inf),ineqLB = c(-Inf,0,-Inf,0),
-                        LB=c(-10,-3,-3,-10),UB=c(10,3,3,10),Y=Y)
+theta_new$par
+thetaA
+# theta_new=Rsolnp::solnp(theta_inv,fun,
+#                         ineqfun = ineq2,ineqUB = c(0,Inf,0,Inf),ineqLB = c(-Inf,0,-Inf,0),
+#                         LB=c(-3.5,-.9,-.9,-5),UB=c(3.5,.9,.9,5),Y=Y)
 
 theta_new$convergence
 # 0 means convergence
-theta_newpars=theta_new$par
+theta_newpars=theta_new$par;theta_newpars
+theta_inv
+thetaA
 theta_newpars[1]=(exp(theta_newpars[1])-1)/(exp(theta_newpars[1])+1)
 theta_newpars[4]=exp(theta_newpars[4])
 theta_newpars
