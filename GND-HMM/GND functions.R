@@ -60,7 +60,8 @@ gfun_GND=function(y,theta){
 
 get_eta=function(
     #y1,y2,
-  theta){
+  theta,
+  bounds=c(-5,5)){
   
   # get_eta computes the normalizing constant of the GND density
   # y1 and y2 are vectors of observations
@@ -70,7 +71,7 @@ get_eta=function(
   # sig2AB=sig2AB$sig2AB
   
   # Set integral boundaries to -5 and 5 for convergence 
-  int=integrate(f=gfun_GND,lower = -5,upper = 5,theta=theta)
+  int=integrate(f=gfun_GND,lower = bounds[1],upper = bounds[2],theta=theta)
   
   eta=log(int$value)
   return(eta)
