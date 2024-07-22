@@ -26,10 +26,8 @@ fun = function(theta,Y,bounds=c(-5,5)) {
   #   log_likelihood = log_likelihood + (-sum(dGND(THETA[,i],eta,y1,y2,logd=T)))
   # }
   
-  return(log_likelihood)
+  return(-log_likelihood)
 }
-
-fun(thetaA,Y)
 
 ineq2=function(theta,Y,bounds){
   
@@ -52,11 +50,14 @@ ineq2=function(theta,Y,bounds){
   return(c(z11,z12,z21,z22))
 }
 
-thetaA=c(-0.5,0,0,0)
+thetaA=c(-0.5,0.1,0.1,2)
 N=5000
 Y=GND_sim(thetaA,N,seed=1,ngrid = 10^6)
 plot(Y)
-thetaA_new=Rsolnp::solnp(c(0,0,0,0),
+
+cor(Y)[2,1]
+
+thetaA_new=Rsolnp::solnp(c(cor(Y)[2,1],0,0,1),
                         fun,
                         ineqfun = ineq2,
                         ineqUB = c(0,Inf,0,Inf),
@@ -66,7 +67,7 @@ thetaA_new=Rsolnp::solnp(c(0,0,0,0),
                         Y=Y,bounds=c(-5,5),
                         control=list(rho=1,tol=1e-16,trace=0))
 
-thetaA_new$par
+round(thetaA_new$par,2)
 thetaA
 
 thetaB=c(-0.9,-.1,0.5,2)
