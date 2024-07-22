@@ -29,12 +29,6 @@ fun = function(theta,Y,bounds=c(-5,5)) {
   return(log_likelihood)
 }
 
-# theta_inv=thetaA
-# theta_inv[1]=log((1+thetaA[1])/(1-thetaA[1]))
-# theta_inv[4]=log(thetaA[4])
-# theta_inv
-# thetaA
-# #fun(theta_inv,Y)
 fun(thetaA,Y)
 
 ineq2=function(theta,Y,bounds){
@@ -49,22 +43,20 @@ ineq2=function(theta,Y,bounds){
   
   theta5=theta[3]
   theta6=theta[4]
-  #theta6=exp(theta[4])
-  
+
   z11=theta5-sqrt(2*theta6*theta1)
   z12=theta5+sqrt(2*theta6*theta1)
   z21=theta4-sqrt(2*theta6*theta2)
   z22=theta4+sqrt(2*theta6*theta2)
-  # z3=theta[1]
-  # z4=theta[2]
+ 
   return(c(z11,z12,z21,z22))
 }
 
-thetaA=c(-0.5,-.1,0.5,2)
+thetaA=c(-0.5,0,0,0)
 N=5000
 Y=GND_sim(thetaA,N,seed=1,ngrid = 10^6)
 plot(Y)
-thetaA_new=Rsolnp::solnp(c(-0.5,0,0,1),
+thetaA_new=Rsolnp::solnp(c(0,0,0,0),
                         fun,
                         ineqfun = ineq2,
                         ineqUB = c(0,Inf,0,Inf),
