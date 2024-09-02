@@ -17,12 +17,20 @@ dGND=function(theta,eta,y1,y2,logd=T){
   theta5=theta[3]
   theta6=theta[4]
   
-  f=exp((-1/2)*theta1*y1^2-(1/2)*theta2*y2^2+theta3
-        *y1*y2+theta4*y1*y2^2+theta5
-        *y1^2*y2-theta6*y1^2*y2^2-eta)
+  # f=exp((-1/2)*theta1*y1^2-(1/2)*theta2*y2^2+theta3
+  #       *y1*y2+theta4*y1*y2^2+theta5
+  #       *y1^2*y2-theta6*y1^2*y2^2-eta)
   
   if(logd){
-    f=log(f)
+    #f=log(f)
+    f=((-1/2)*theta1*y1^2-(1/2)*theta2*y2^2+theta3
+       *y1*y2+theta4*y1*y2^2+theta5
+       *y1^2*y2-theta6*y1^2*y2^2-eta)
+  }
+  else{
+    f=exp((-1/2)*theta1*y1^2-(1/2)*theta2*y2^2+theta3
+          *y1*y2+theta4*y1*y2^2+theta5
+          *y1^2*y2-theta6*y1^2*y2^2-eta) 
   }
   
   return(f)
@@ -58,21 +66,22 @@ gfun_GND=function(y,theta){
   return(g)
 }
 
+
 get_eta=function(
     #y1,y2,
   theta,
   bounds=c(-5,5)){
-  
+
   # get_eta computes the normalizing constant of the GND density
   # y1 and y2 are vectors of observations
   # theta is the vector of parameters with 6 components
-  
+
   # sig2AB=cond_mom(y1,y2,theta)
   # sig2AB=sig2AB$sig2AB
-  
-  # Set integral boundaries to -5 and 5 for convergence 
+
+  # Set integral boundaries to -5 and 5 for convergence
   int=integrate(f=gfun_GND,lower = bounds[1],upper = bounds[2],theta=theta)
-  
+
   eta=log(int$value)
   return(eta)
 }

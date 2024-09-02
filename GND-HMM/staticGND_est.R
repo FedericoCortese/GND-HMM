@@ -69,6 +69,7 @@ thetaA_new=Rsolnp::solnp(c(cor(Y)[2,1],0,0,1),
 
 round(thetaA_new$par,2)
 thetaA
+thetaA_new$convergence #0 for convergence
 
 thetaB=c(-0.9,-.1,0.5,2)
 N=5000
